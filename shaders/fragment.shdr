@@ -4,8 +4,14 @@ out vec4 FragColor;
 in vec2 TexCoord;
 
 uniform sampler2D ourTexture;
+uniform int flipTexture;
 
 void main()
 {
-        FragColor = texture( ourTexture, TexCoord );
+        vec2 texCoord = TexCoord;
+        if (flipTexture != 0) {
+                texCoord = vec2(1.0 - TexCoord.x, TexCoord.y);
+        }
+
+        FragColor = texture(ourTexture, texCoord);
 }

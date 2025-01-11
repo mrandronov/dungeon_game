@@ -12,41 +12,28 @@
 #include "logging.h"
 #include "tile_map.h"
 #include "texture_atlas.h"
-#include "camera.h"
+#include "renderer.h"
 
-#define MAP_PATH "./maps/tilemap1.map"
+char*                   tile_map_path = "./maps/tilemap1.map";
+char*                   texture_atlas_path = "./res/Textures.png";
 
-int                     verticesSize;
-float*                  vertices;
-
-int                     indicesSize;
-unsigned int*           indices;
-
-int                     tileRows;
-int                     tileCols;
-unsigned int*           tileMap;
-
-mat4                    model = GLM_MAT4_IDENTITY;
-
-void
-TileMapRender(TileMap* self)
+void TileMapSetUniforms(void* obj)
 {
-        self->shader->setUniform(self->shader, "model", MAT4, (float*) model );
-        self->shader->setUniform(self->shader, "view", MAT4, (float*) view );
-        self->shader->setUniform(self->shader, "orthographic", MAT4, (float*) ortho );
+}
 
-        self->shader->activate(self->shader);
-
-        glBindTexture(GL_TEXTURE_2D, self->textureAtlas->texture->id);
-        glBindVertexArray(self->vao);
-
-        glDrawElements(GL_TRIANGLES, 6 * tileRows * tileCols, GL_UNSIGNED_INT, 0);
-        
-        glBindVertexArray(0);
+void TileMapUnsetUniforms(void* obj)
+{
 }
 
 void
-ReadMapData(const char* map_file_path)
+TileMapDestroy(TileMap* self)
+{
+        // TODO
+        // Need to destroy texture data as well
+}
+
+void
+ReadMapData(TileMap* self, const char* map_file_path)
 {
         FILE*           fptr = NULL;
 
@@ -62,10 +49,10 @@ ReadMapData(const char* map_file_path)
         // Count new lines to get number of rows
         // Count space separated values to get number of columns
 
+        char            c = ' ';
         int             newLineCount = 0;
         int             lineValueCount = 0;
         bool            lineValueFound = false;
-        char            c = ' ';
         while (c != EOF)
         {
                 c = fgetc(fptr);
@@ -80,21 +67,21 @@ ReadMapData(const char* map_file_path)
                 }
         }
 
-        tileRows = newLineCount;
-        tileCols = lineValueCount + 1;
+        self->tileRows = newLineCount;
+        self->tileCols = lineValueCount + 1;
         
-        log_info("found map of size %d x %d", tileRows, tileCols);
+        log_debug("found map of size %d x %d", self->tileRows, self->tileCols);
 
         c = ' ';
         rewind(fptr);
 
         // Now read values
-        tileMap = (unsigned int*) malloc(tileRows * tileCols * sizeof(unsigned int ) ); 
-        for (int i = 0; i < tileRows; i++)
+        self->tileMap = (unsigned int*) malloc(self->tileRows * self->tileCols * sizeof(unsigned int)); 
+        for (int i = 0; i < self->tileRows; i++)
         {
-                for(int j = 0; j < tileCols; j++)
+                for(int j = 0; j < self->tileCols; j++)
                 {
-                        fscanf(fptr, "%d", &tileMap[ (i * tileRows) + j ] );
+                        fscanf(fptr, "%d", &self->tileMap[ (i * self->tileRows) + j ]);
                 }
         }
 
@@ -102,11 +89,13 @@ ReadMapData(const char* map_file_path)
 }
 
 float*
-GenerateVertices(TileMap* self, unsigned int* tileMap, int rows, int cols)
+GenerateVertices(TileMap* self)
 {
-        verticesSize = rows * cols * (4 * 5);
-        
-        float*          vertices = (float*) malloc(verticesSize * sizeof(float ) );
+        int rows = self->tileRows;
+        int cols = self->tileCols;
+
+        int verticesSize = rows * cols * (4 * 5);
+        float*          vertices = (float*) malloc(verticesSize * sizeof(float));
 
         float           startX = 0.0f;
         float           startY = 0.0f;
@@ -119,7 +108,7 @@ GenerateVertices(TileMap* self, unsigned int* tileMap, int rows, int cols)
                         float           texOffsetY = 0.0f;
                         float           offsetY = j + startY;
                         int             vertIndex = ((i * rows) + j) * 5 * 4;
-                        int             tileType = tileMap[ (i * rows) + j ];
+                        int             tileType = self->tileMap[ (i * rows) + j ];
 
                         self->textureAtlas->lookup(self->textureAtlas, tileType, &texOffsetX, &texOffsetY); 
 
@@ -160,10 +149,12 @@ GenerateVertices(TileMap* self, unsigned int* tileMap, int rows, int cols)
 }
 
 unsigned int*
-GenerateIndices(unsigned int* tileMap, int rows, int cols)
+GenerateIndices(TileMap* self)
 {
-        indicesSize = rows * cols * 6; 
-        unsigned int*           indices = (unsigned int*) malloc(indicesSize * sizeof(unsigned int ) );
+        int             rows            = self->tileRows;
+        int             cols            = self->tileCols;
+        int             indicesSize     = rows * cols * 6; 
+        unsigned int*   indices         = (unsigned int*) malloc(indicesSize * sizeof(unsigned int));
 
         int                     offset = 0;
         for (int i = 0; i < indicesSize; i += 6)
@@ -182,43 +173,29 @@ GenerateIndices(unsigned int* tileMap, int rows, int cols)
 }
 
 TileMap*
-TileMapCreate(ShaderProgram* shader, TextureAtlas* textureAtlas)
+TileMapCreate(ShaderProgram* shader)
 {
-        TileMap*               self = (TileMap*) malloc(sizeof(TileMap ) );
+        TileMap*               self = (TileMap*) malloc(sizeof(TileMap));
 
-        glGenBuffers(1, &self->vbo);
-        glGenVertexArrays(1, &self->vao);
-        glGenBuffers(1, &self->ebo);
+        self->textureAtlas = TextureAtlasCreate(texture_atlas_path);
 
-        self->shader = shader;
-        self->textureAtlas = textureAtlas;
+        ReadMapData(self, tile_map_path);
 
-        self->render = TileMapRender;
+        int             verticesSize    = self->tileRows * self->tileCols * (4 * 5);
+        int             indicesSize     = self->tileRows * self->tileCols * 6; 
+        float*          vertices        = GenerateVertices(self);
+        unsigned int*   indices         = GenerateIndices(self);
 
-        ReadMapData(MAP_PATH);
-        vertices = GenerateVertices(self, tileMap, tileRows, tileCols);
-        indices = GenerateIndices(tileMap, tileRows, tileCols);
+        self->object = RenderObjectCreate(
+                        shader,
+                        GLM_MAT4_IDENTITY,
+                        verticesSize, vertices,
+                        indicesSize, indices,
+                        self,
+                        TileMapSetUniforms, TileMapUnsetUniforms);
+        self->object->texture = self->textureAtlas->texture;
 
-        glBindVertexArray(self->vao);
-
-        glBindBuffer(GL_ARRAY_BUFFER, self->vbo);
-        glBufferData(GL_ARRAY_BUFFER, verticesSize * sizeof(float), vertices, GL_STATIC_DRAW );
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesSize * sizeof(unsigned int), indices, GL_STATIC_DRAW );
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void* ) 0 );
-        glEnableVertexAttribArray(0);
-
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void* ) (3 * sizeof(float ) ) );
-        glEnableVertexAttribArray(1);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-        memcpy(&view, &GLM_MAT4_IDENTITY, sizeof(GLM_MAT4_IDENTITY) );
-        glm_translate(view, (vec3){ 0.0f, 0.0f, -10.0f } );
-        glm_perspective_default(1.0f, ortho);
+        self->destroy = TileMapDestroy;
 
         log_info("create tile map: success");
 

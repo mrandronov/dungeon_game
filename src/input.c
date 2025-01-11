@@ -1,7 +1,8 @@
+#include <cglm/cglm.h>
+
 #include "input.h"
 #include "camera.h"
 
-#include <cglm/cglm.h>
 
 void
 handleInput()
@@ -37,4 +38,37 @@ handleInput()
         }
 }
 
+// Use vectors instead of flat directional movement.
+void
+handlePlayerInput(Player* player)
+{
+        if ( W_KEY )
+        {
+                glm_translate( player->object->model, UP );
+        }
+
+        if ( S_KEY )
+        {
+                glm_translate( player->object->model, DOWN );
+        }
+
+        if ( A_KEY )
+        {
+                glm_translate( player->object->model, LEFT );
+                player->isFacingRight = false;
+        }
+
+        if ( D_KEY )
+        {
+                glm_translate( player->object->model, RIGHT );
+                player->isFacingRight = true;
+        }
+
+        if ( W_KEY || S_KEY || A_KEY || D_KEY ) {
+                player->currentTexture = player->runTexture;
+        } else {
+                player->currentTexture = player->idleTexture;
+        }
+        player->currentTexture->isStarted = true;
+}
 

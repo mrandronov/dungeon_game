@@ -1,6 +1,8 @@
 #ifndef __SHADER_H__
 #define __SHADER_H__
 
+#include <stdbool.h>
+
 typedef enum
 {
         VERTEX,
@@ -17,6 +19,7 @@ int                             ShaderCreate( const char* shader_path, ShaderTyp
 typedef struct shader_program_t
 {
         int                     id;
+        bool                    isActive;
 
         void                    ( *activate )( struct shader_program_t* self );
         void                    ( *setUniform )( struct shader_program_t* self, char* uniformName, UniformType type, void* data );

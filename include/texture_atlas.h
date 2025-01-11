@@ -7,9 +7,10 @@
 
 enum TileType
 {
-        GRASS,
-        DIRT,
-        STONE
+        GRASS,  // 1
+        DIRT,   // 2
+        STONE,  // 3
+        WOOD,   // 4
 };
 
 typedef struct
@@ -25,6 +26,7 @@ typedef struct texture_atlas_t
         TileTexture*            grass;
         TileTexture*            dirt;
         TileTexture*            stone;
+        TileTexture*            wood;
         
         void                    ( *lookup )( struct texture_atlas_t* self, enum TileType type, float* offsetX, float* offsetY );  
 } TextureAtlas;

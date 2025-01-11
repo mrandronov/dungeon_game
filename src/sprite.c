@@ -5,56 +5,109 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #include <OpenGL/gl.h>
+#include "cglm/mat4.h"
 
+#include "logging.h"
 #include "sprite.h"
-#include "camera.h"
-
-int                     verticesSize;
-float*                  vertices;
-
-int                     indicesSize;
-unsigned int*           indices;
+#include "texture.h"
 
 void
-SpriteRender( Sprite* self )
+SpriteSetUniforms(void* obj)
 {
-        self->shader->setUniform( self->shader, "model", MAT4, ( float* ) self->model );
-        self->shader->setUniform( self->shader, "view", MAT4, ( float* ) view );
-        self->shader->setUniform( self->shader, "orthographic", MAT4, ( float* ) ortho );
+        Sprite* self = (Sprite*) obj;
 
-        self->shader->activate( self->shader );
+        self->object->texture = self->currentTexture->getCurrentTexture(self->currentTexture);
 
-        // TODO: Figure out the texture situation
-        /*glBindTexture( GL_TEXTURE_2D, self->textureAtlas->texture->id );*/
-        glBindVertexArray( self->vao );
-
-        glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0 );
-        
-        glBindVertexArray( 0 );
+        int flipTextureUniformLoc = glGetUniformLocation(self->object->shader->id, "flipTexture");
+        glUniform1i(flipTextureUniformLoc, !self->isFacingRight);
 }
 
 void
-SpriteDestroy( Sprite* self )
+SpriteUnsetUniforms(void* obj)
+{
+        Sprite* self = (Sprite*) obj;
+
+        int flipTextureUniformLoc = glGetUniformLocation(self->object->shader->id, "flipTexture");
+        glUniform1i(flipTextureUniformLoc, 0);
+}
+
+float*
+spriteInitVertices(int verticesSize)
+{
+        float* vertices = (float*) malloc( verticesSize * sizeof(float) );
+
+        float localVert[20] = {
+                0.5f,  0.5f, 0.0f,        1.0f, 1.0f, // top right
+                0.5f, -0.5f, 0.0f,        1.0f, 0.0f, // bottom right
+                -0.5f, -0.5f, 0.0f,        0.0f, 0.0f, // bottom left
+                -0.5f,  0.5f, 0.0f,        0.0f, 1.0f  // top left
+        };
+        memcpy(vertices, localVert, verticesSize * sizeof(float));
+
+        return vertices;
+}
+
+unsigned int*
+spriteInitIndices(int indicesSize)
+{
+        unsigned int* indices = (unsigned int*) malloc( indicesSize * sizeof(unsigned int) );
+
+        unsigned int localIndex[6] = {
+                0, 1, 3, // first triangle
+                1, 2, 3  // second triangle
+        };
+        memcpy(indices, localIndex, indicesSize * sizeof(unsigned int));
+
+        return indices;
+}
+
+void
+SpriteDestroy(Sprite* self)
 {
         // TODO
 }
 
 Sprite*
-SpriteCreate( ShaderProgram* shader, vec3 pos )
+SpriteCreate(ShaderProgram* shader)
 {
-        Sprite*         self = ( Sprite* ) malloc( sizeof( Sprite ) );
+        Sprite*         self = (Sprite*) malloc(sizeof(Sprite));
 
-        glGenBuffers( 1, &self->vbo );
-        glGenVertexArrays( 1, &self->vao );
-        glGenBuffers( 1, &self->ebo );
+        int verticesSize = 20;
+        int indicesSize = 6;
 
-        self->shader = shader;
-        // self->model -> Pass a position here
-        memcpy( &self->model, &GLM_MAT4_IDENTITY, sizeof( GLM_MAT4_IDENTITY ) );
-        glm_translate( self->model, pos );
+        self->object = RenderObjectCreate(shader,
+                        GLM_MAT4_IDENTITY,
+                        verticesSize, spriteInitVertices(verticesSize),
+                        indicesSize, spriteInitIndices(indicesSize),
+                        self,
+                        SpriteSetUniforms, SpriteUnsetUniforms);
 
-        self->render = SpriteRender;
+        char* runTexturePaths[6] = {
+                "./res/player_sprites/run/adventurer-run-00.png",
+                "./res/player_sprites/run/adventurer-run-01.png",
+                "./res/player_sprites/run/adventurer-run-02.png",
+                "./res/player_sprites/run/adventurer-run-03.png",
+                "./res/player_sprites/run/adventurer-run-04.png",
+                "./res/player_sprites/run/adventurer-run-05.png",
+        };
+
+        char* idleTexturePaths[4] = {
+                "./res/player_sprites/idle/adventurer-idle-00.png",
+                "./res/player_sprites/idle/adventurer-idle-01.png",
+                "./res/player_sprites/idle/adventurer-idle-02.png",
+                "./res/player_sprites/idle/adventurer-idle-03.png",
+        };
+
+        self->runTexture = AnimatedTextureCreate(15.0f, 6, runTexturePaths, true);
+        self->idleTexture = AnimatedTextureCreate(3.0f, 4, idleTexturePaths, true);
+        self->currentTexture = self->idleTexture;
+
+        self->isFacingRight = true;
+
         self->destroy = SpriteDestroy;
+
+        log_info("sprite: create success");
 
         return self;
 }
+

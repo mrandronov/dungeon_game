@@ -8,13 +8,16 @@
 #define GL_SILENCE_DEPRECATION
 #include <GLFW/glfw3.h>
 
-#define MOVESPEED 0.5f
-#define DOWN ( vec3 ){ 0.0f, -MOVESPEED, 0.0f }
-#define UP ( vec3 ){ 0.0f, MOVESPEED, 0.0f }
-#define RIGHT ( vec3 ){ MOVESPEED, 0.0f, 0.0f }
-#define LEFT ( vec3 ){ -MOVESPEED, 0.0f, 0.0f }
-#define ZOOM_OUT ( vec3 ){ 0.0f, 0.0f, -MOVESPEED }
-#define ZOOM_IN ( vec3 ){ 0.0f, 0.0f, MOVESPEED }
+#include "player.h"
+
+#define MOVESPEED 0.12f
+
+#define DOWN            ( vec3 ){ 0.0f, -MOVESPEED, 0.0f }
+#define UP              ( vec3 ){ 0.0f, MOVESPEED, 0.0f }
+#define RIGHT           ( vec3 ){ MOVESPEED, 0.0f, 0.0f }
+#define LEFT            ( vec3 ){ -MOVESPEED, 0.0f, 0.0f }
+#define ZOOM_OUT        ( vec3 ){ 0.0f, 0.0f, -MOVESPEED }
+#define ZOOM_IN         ( vec3 ){ 0.0f, 0.0f, MOVESPEED }
 
 
 bool            W_KEY;
@@ -24,6 +27,9 @@ bool            D_KEY;
 bool            Q_KEY;
 bool            E_KEY;
 
+bool            T_KEY;
+
 void            handleInput();
+void            handlePlayerInput(Player* player);
 
 #endif /* __INPUT_H__ */

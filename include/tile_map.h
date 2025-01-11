@@ -1,21 +1,23 @@
 #ifndef __TILE_MAP_H__
 #define __TILE_MAP_H__
 
+#include "renderer.h"
 #include "shader.h"
 #include "texture_atlas.h"
 
 typedef struct tile_map_t
 {
-        unsigned int            vbo;
-        unsigned int            vao;
-        unsigned int            ebo;
-        ShaderProgram*          shader;
+        RenderObject*           object;
+
         TextureAtlas*           textureAtlas;
 
-        void                    ( *render )( struct tile_map_t* self );
+        int                     tileRows;
+        int                     tileCols;
+        unsigned int*           tileMap;
+
         void                    ( *destroy )( struct tile_map_t* self );
 } TileMap;
 
-TileMap*                        TileMapCreate( ShaderProgram* program, TextureAtlas* textureAtlas );
+TileMap*                        TileMapCreate(ShaderProgram* program);
 
 #endif /* __TILE_MAP_H__ */

@@ -3,11 +3,11 @@
 #include "sprite_atlas.h"
 
 SpriteAtlas*
-SpriteAtlasCreate( char* sprite_image_path )
+SpriteAtlasCreate(char* sprite_image_path)
 {
-        SpriteAtlas*            self = ( SpriteAtlas* ) malloc( sizeof( SpriteAtlas ) );
+        SpriteAtlas*            self = (SpriteAtlas*) malloc(sizeof(SpriteAtlas));
 
-        self->texture = texture_create( sprite_image_path );
+        self->texture = texture_create(sprite_image_path, true);
 
         return self;
 }

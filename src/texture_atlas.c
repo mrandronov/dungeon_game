@@ -5,7 +5,7 @@
 TileTexture*
 TileTextureCreate(enum TileType type, int offsetX, int offsetY)
 {
-        TileTexture*    self = (TileTexture*) malloc(sizeof(TileTexture ) );
+        TileTexture*    self = (TileTexture*) malloc(sizeof(TileTexture));
 
         self->type = type;
         self->offsetX = offsetX;
@@ -24,6 +24,8 @@ getTexture(TextureAtlas* self, enum TileType type)
                         return self->dirt;
                 case STONE:
                         return self->stone;
+                case WOOD:
+                        return self->wood;
                 default:
                         return self->grass;
         }
@@ -40,13 +42,14 @@ TextureLookup(TextureAtlas* self, enum TileType type, float* offsetX, float* off
 TextureAtlas*
 TextureAtlasCreate(char* texture_img_path)
 {
-        TextureAtlas*           self = (TextureAtlas*) malloc(sizeof(TextureAtlas ) );
+        TextureAtlas*           self = (TextureAtlas*) malloc(sizeof(TextureAtlas));
 
-        self->texture = texture_create(texture_img_path);
+        self->texture = texture_create(texture_img_path, false);
 
-        self->grass = TileTextureCreate(GRASS, 0, 23);
-        self->dirt = TileTextureCreate(DIRT, 0, 29);
+        self->grass = TileTextureCreate(GRASS, 2, 15);
+        self->dirt = TileTextureCreate(DIRT, 2, 30);
         self->stone = TileTextureCreate(STONE, 7, 0);
+        self->wood = TileTextureCreate(WOOD, 1, 13);
 
         self->lookup = TextureLookup;
 
