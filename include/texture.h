@@ -5,6 +5,15 @@
 
 typedef struct
 {
+        int             rate;
+        int             numFrames;
+        char**          texturePaths;
+        bool            flip;
+        bool            loop;
+} TextureConfig;
+
+typedef struct
+{
         unsigned int    id;
         char*           image_path;
 } Texture;
@@ -20,11 +29,15 @@ typedef struct animated_texture_t
         Texture*        frames;
 
         bool            isStarted;
+        bool            loop;
 
         Texture*        (*getCurrentTexture)(struct animated_texture_t* self);
 } AnimatedTexture;
 
 void                    BindAnimatedTexture(AnimatedTexture* self);
-AnimatedTexture*        AnimatedTextureCreate(float rate, int count, char** imagePaths, bool flip);
+AnimatedTexture*        AnimatedTextureCreate(TextureConfig config);
+
+char**                  mallocPersistentPaths(int textureCount, char** texturePaths);
+TextureConfig           GetTorchTextConf();
 
 #endif /* __TEXTURE_H__ */

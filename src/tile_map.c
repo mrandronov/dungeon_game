@@ -114,32 +114,32 @@ GenerateVertices(TileMap* self)
 
                         // top right
                         vertices[ vertIndex ] = offsetX + 0.5f;                 // x
-                        vertices[ vertIndex + 1 ] = offsetY + 0.5f;             // y
-                        vertices[ vertIndex + 2 ] = 0.0f;                       // z
+                        vertices[ vertIndex + 2 ] = offsetY + 0.5f;             // y
+                        vertices[ vertIndex + 1 ] = 0.0f;                       // z
                         vertices[ vertIndex + 3 ] = texOffsetX + 0.03125f;      // texture x
                         vertices[ vertIndex + 4 ] = texOffsetY + 0.0f;          // texture y
                         
                         // bottom right
                         vertIndex += 5;
                         vertices[ vertIndex ] = offsetX + 0.5f;                 // x
-                        vertices[ vertIndex + 1 ] = offsetY - 0.5f;             // y
-                        vertices[ vertIndex + 2 ] = 0.0f;                       // z
+                        vertices[ vertIndex + 2 ] = offsetY - 0.5f;             // y
+                        vertices[ vertIndex + 1 ] = 0.0f;                       // z
                         vertices[ vertIndex + 3 ] = texOffsetX + 0.03125f;      // texture x
                         vertices[ vertIndex + 4 ] = texOffsetY + 0.03125f;      // texture y
 
                         // bottom left
                         vertIndex += 5;
                         vertices[ vertIndex ] = offsetX - 0.5f;                 // x
-                        vertices[ vertIndex + 1 ] = offsetY - 0.5f;             // y
-                        vertices[ vertIndex + 2 ] = 0.0f;                       // z
+                        vertices[ vertIndex + 2 ] = offsetY - 0.5f;             // y
+                        vertices[ vertIndex + 1 ] = 0.0f;                       // z
                         vertices[ vertIndex + 3 ] = texOffsetX + 0.0f;          // texture x
                         vertices[ vertIndex + 4 ] = texOffsetY + 0.03125f;      // texture y
 
                         // top left
                         vertIndex += 5;
                         vertices[ vertIndex ] = offsetX - 0.5f;                 // x
-                        vertices[ vertIndex + 1 ] = offsetY + 0.5f;             // y
-                        vertices[ vertIndex + 2 ] = 0.0f;                       // z
+                        vertices[ vertIndex + 2 ] = offsetY + 0.5f;             // y
+                        vertices[ vertIndex + 1 ] = 0.0f;                       // z
                         vertices[ vertIndex + 3 ] = texOffsetX + 0.0f;          // texture x
                         vertices[ vertIndex + 4 ] = texOffsetY + 0.0f;          // texture y
                 }
@@ -182,13 +182,14 @@ TileMapCreate(ShaderProgram* shader)
         ReadMapData(self, tile_map_path);
 
         int             verticesSize    = self->tileRows * self->tileCols * (4 * 5);
-        int             indicesSize     = self->tileRows * self->tileCols * 6; 
         float*          vertices        = GenerateVertices(self);
+
+        int             indicesSize     = self->tileRows * self->tileCols * 6; 
         unsigned int*   indices         = GenerateIndices(self);
 
         self->object = RenderObjectCreate(
                         shader,
-                        GLM_MAT4_IDENTITY,
+                        (vec3) {0.0f, 0.0f, 0.0f},
                         verticesSize, vertices,
                         indicesSize, indices,
                         self,

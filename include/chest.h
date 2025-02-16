@@ -12,6 +12,8 @@ typedef struct chest_t
         void                    (*destroy)(struct chest_t* self);
 } Chest;
 
-Chest*                          ChestCreate(ShaderProgram* shader);
+Chest*                          ChestCreate(ShaderProgram* shader, vec3 pos);
+
+TextureConfig                   GetChestOpenTexConf();
 
 #endif /* __CHEST_H__ */

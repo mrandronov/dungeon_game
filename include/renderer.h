@@ -8,13 +8,16 @@
 
 typedef struct render_object_t
 {
+        char*           id;
+
         unsigned int    vao;
         unsigned int    vbo;
         unsigned int    ebo;
 
         ShaderProgram*  shader;
-        mat4            model;
         Texture*        texture;
+        mat4            model;
+        vec3            pos;
 
         int             elementCount;
 
@@ -26,12 +29,13 @@ typedef struct render_object_t
         void            (*destroy)(struct render_object_t* self);
 } RenderObject;
 
-
 RenderObject* RenderObjectCreate(ShaderProgram* shader, 
-                mat4 model, 
+                vec3 pos,
                 int verticesSize, float* vertices, 
                 int indicesSize, unsigned int* indices,
                 void* parent,
                 void (*setUniforms)(void*), void (*unsetUniforms)(void*));
+
+vec3*         Position(float x, float y, float z);
 
 #endif /* __RENDERER_H__ */

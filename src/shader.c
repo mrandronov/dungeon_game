@@ -87,10 +87,8 @@ ShaderCreate(const char* filename, ShaderType type)
 void
 ShaderProgramActivate(ShaderProgram* self)
 {
-        if (!self->isActive) {
-                glUseProgram(self->id);
-                self->isActive = true;
-        }
+        glUseProgram(self->id);
+        /*self->isActive = true;*/
 }
 
 void

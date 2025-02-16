@@ -4,7 +4,7 @@
 int
 main(int argc, char* argv[])
 {
-        Window*         window = WindowCreate(1100, 900, 60);
+        Window*         window = WindowCreate(1200, 675, 60);
 
         init(window);
 

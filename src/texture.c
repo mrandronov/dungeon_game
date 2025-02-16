@@ -42,7 +42,7 @@ texture_create(char* image_path, bool flip)
         {
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
                 glGenerateMipmap(GL_TEXTURE_2D);
-                log_info("create texture for %s: success", image_path);
+                log_debug("create texture for %s: success", image_path);
         }
         else
         {
@@ -78,7 +78,7 @@ GetCurrentTexture(AnimatedTexture* self)
 {
         float           now = glfwGetTime();
 
-        if (self->isStarted && (now - self->lastFrameTime) >= (1.0f / self->rate))
+        if ((self->isStarted || self->loop) && (now - self->lastFrameTime) >= (1.0f / self->rate))
         {
                 self->currentFrame += 1;
                 if ( self->currentFrame >= self->frameCount ) {
@@ -104,23 +104,64 @@ AnimatedTextureStop(AnimatedTexture* self)
 }
 
 AnimatedTexture*
-AnimatedTextureCreate(float rate, int count, char** imagePaths, bool flip)
+AnimatedTextureCreate(TextureConfig config)
 {
         AnimatedTexture* self = (AnimatedTexture*) malloc(sizeof(AnimatedTexture));
 
-        self->rate = rate;
+        self->rate = config.rate;
         self->lastFrameTime = 0.0f;
         self->currentFrame = 0;
-        self->frameCount = count;
-        self->frames = (Texture*) malloc( self->frameCount * sizeof(Texture));
+        self->frameCount = config.numFrames;
+        self->frames = (Texture*) malloc(self->frameCount * sizeof(Texture));
+
         self->isStarted = false;
+        self->loop = config.loop;
 
         self->getCurrentTexture = GetCurrentTexture;
 
         // Load each individual image
-        for (int i = 0; i < count; i++) {
-                self->frames[i] = *texture_create(imagePaths[i], flip);
+        for (int i = 0; i < self->frameCount; i++) {
+                self->frames[i] = *texture_create(config.texturePaths[i], config.flip);
         }
 
+        log_debug("texture: creation success...");
+
         return self;
+}
+
+char**
+mallocPersistentPaths(int textureCount, char** texturePaths)
+{
+        char** paths = malloc(sizeof(char*) * textureCount);
+        for (int i = 0; i < textureCount; i++) {
+                size_t pathSize = (sizeof(char) * strlen(texturePaths[i]))+1;
+                
+                paths[i] = malloc(pathSize);
+                memcpy(paths[i], texturePaths[i], pathSize);
+
+                paths[i][strlen(texturePaths[i])] = '\0';
+        }
+
+        return paths;
+}
+
+// For arbitrary animated static sprites
+TextureConfig
+GetTorchTextConf()
+{
+        int textureCount = 5;
+        char* texturePaths[] = {
+                "./res/torch/torch-01.png",
+                "./res/torch/torch-02.png",
+                "./res/torch/torch-03.png",
+                "./res/torch/torch-04.png",
+                "./res/torch/torch-05.png"
+        };
+        
+        return (TextureConfig) {
+                .rate = 10.0f,
+                .numFrames = textureCount,
+                .texturePaths = mallocPersistentPaths(textureCount, texturePaths),
+                .loop = true
+        };
 }

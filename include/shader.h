@@ -28,4 +28,6 @@ typedef struct shader_program_t
 
 ShaderProgram*                  ShaderProgramCreate( const char* vertx_shdr_path, const char* frag_shdr_path );
 
+extern ShaderProgram*          shader_program;
+
 #endif /* __SHADER_H__ */

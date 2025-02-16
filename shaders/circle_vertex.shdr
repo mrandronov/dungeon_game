@@ -1,0 +1,12 @@
+#version 330 core
+layout (location = 0) in vec3 circlePos;
+layout (location = 1) in vec2 aTexCoord;
+
+uniform mat4 orthographic;
+uniform mat4 view;
+uniform mat4 model;
+
+void main()
+{
+        gl_Position = orthographic * view * model * vec4(circlePos, 1.0);
+}

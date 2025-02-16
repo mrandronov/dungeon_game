@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "chest.h"
 #include "glad/glad.h"
 #define GL_SILENCE_DEPRECATION
 #include <GLFW/glfw3.h>
@@ -15,15 +14,14 @@
 #include "player.h"
 #include "tile_map.h"
 #include "camera.h"
+#include "chest.h"
+#include "torch.h"
 
 bool                    is_game_running = true;
 const char*             vertx_shdr_path = "./shaders/vertex.shdr";
 const char*             frag_shdr_path = "./shaders/fragment.shdr";
-ShaderProgram*          shader_program;
 Camera*                 camera;
-TileMap*                tile_map;
 Player*                 player;
-Chest*                  chest;
 
 void
 checkKey(int key, int action, int GLFW_KEY, bool* local_key)
@@ -49,18 +47,18 @@ close_key_callback(GLFWwindow* window, int key, int scancode, int action, int mo
                 is_game_running = false;
         }
 
-        checkKey(key, action, GLFW_KEY_W, &W_KEY);
-        checkKey(key, action, GLFW_KEY_S, &S_KEY);
-        checkKey(key, action, GLFW_KEY_A, &A_KEY);
-        checkKey(key, action, GLFW_KEY_D, &D_KEY);
-        checkKey(key, action, GLFW_KEY_Q, &Q_KEY);
-        checkKey(key, action, GLFW_KEY_E, &E_KEY);
+        for (int i = 0; i < InputListLen; i++)
+        {
+                KeyInput* input = InputList[i];
+                checkKey(key, action, input->glfwKey, input->keyFlag);
+        }
 }
 
 static void
 cursor_position_callback(GLFWwindow* window, double mouse_x, double mouse_y)
 {
-        // TODO
+        mouseX = (float) mouse_x;
+        mouseY = (float) mouse_y;
 }
 
 void APIENTRY 
@@ -117,20 +115,37 @@ init(Window* self)
         glfwSetKeyCallback(self->glfwWindow, close_key_callback);
         glfwSetCursorPosCallback(self->glfwWindow, cursor_position_callback);
 
+        // Initialize key press list for input processing
+        KeyListCreate();
+
         // Initialize global object list that we will render everything from.
         ObjectListCreate();
 
         // Local Objects
         camera = CameraCreate();
         shader_program = ShaderProgramCreate(vertx_shdr_path, frag_shdr_path);
-        tile_map = TileMapCreate(shader_program);
+
+        TileMapCreate(shader_program);
+        
         player = PlayerCreate(shader_program);
-        chest = ChestCreate(shader_program);
+
+        ChestCreate(shader_program, *Position(3.0f, -3.0f, 0.0f));
+
+        /*TorchCreate(shader_program, *Position(2.0f, -3.0f, 0.0f));*/
+        /*TorchCreate(shader_program, *Position(5.0f, -5.0f, 0.0f));*/
+        /*TorchCreate(shader_program, *Position(3.0f, -1.0f, 0.0f));*/
+        /*TorchCreate(shader_program, *Position(4.0f, -2.0f, 0.0f));*/
 
         log_info("window initialization: success");
 
         return 0;
+}
 
+void
+update(Window* self)
+{
+        // Collision detection goes here
+        
 }
 
 void
@@ -159,8 +174,7 @@ run(Window* self) {
                 glfwPollEvents();
                 if ((now - last_frame_time) >= (1.0f / self->fpsCap))
                 {
-                        handleInput();
-                        handlePlayerInput(player);
+                        handleInput(player);
                         render(self);
 
                         last_frame_time = now;

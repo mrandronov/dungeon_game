@@ -3,26 +3,26 @@
 #include "input.h"
 #include "camera.h"
 
-
 void
-handleInput()
+handleInput(Player* player)
 {
-        if ( W_KEY )
+        handlePlayerInput(player);
+        if ( UP_KEY )
         {
                 glm_translate( view, DOWN );
         }
 
-        if ( S_KEY )
+        if ( DOWN_KEY )
         {
                 glm_translate( view, UP );
         }
 
-        if ( A_KEY )
+        if ( LEFT_KEY )
         {
                 glm_translate( view, RIGHT );
         }
 
-        if ( D_KEY )
+        if ( RIGHT_KEY )
         {
                 glm_translate( view, LEFT );
         }
@@ -44,24 +44,29 @@ handlePlayerInput(Player* player)
 {
         if ( W_KEY )
         {
-                glm_translate( player->object->model, UP );
+                player->move(player, UP);
         }
 
         if ( S_KEY )
         {
-                glm_translate( player->object->model, DOWN );
+                player->move(player, DOWN);
         }
 
         if ( A_KEY )
         {
-                glm_translate( player->object->model, LEFT );
+                player->move(player, LEFT);
                 player->isFacingRight = false;
         }
 
         if ( D_KEY )
         {
-                glm_translate( player->object->model, RIGHT );
+                player->move(player, RIGHT);
                 player->isFacingRight = true;
+        }
+
+        if ( F_KEY )
+        {
+                player->placeTorch(player);
         }
 
         if ( W_KEY || S_KEY || A_KEY || D_KEY ) {
@@ -70,5 +75,36 @@ handlePlayerInput(Player* player)
                 player->currentTexture = player->idleTexture;
         }
         player->currentTexture->isStarted = true;
+}
+
+void
+addKeyInput(bool* keyFlag, int glfwKey) {
+        KeyInput*       input = malloc(sizeof(KeyInput));
+
+        input->keyFlag = keyFlag;
+        input->glfwKey = glfwKey;
+
+        InputList[InputListLen] = input;
+        InputListLen++;
+}
+
+void
+KeyListCreate()
+{
+        InputList = malloc(sizeof(KeyInput) * KeyInputCount); 
+        InputListLen = 0;
+
+        addKeyInput(&W_KEY, GLFW_KEY_W);
+        addKeyInput(&A_KEY, GLFW_KEY_A);
+        addKeyInput(&S_KEY, GLFW_KEY_S);
+        addKeyInput(&D_KEY, GLFW_KEY_D);
+        addKeyInput(&Q_KEY, GLFW_KEY_Q);
+        addKeyInput(&E_KEY, GLFW_KEY_E);
+        addKeyInput(&F_KEY, GLFW_KEY_F);
+
+        addKeyInput(&UP_KEY, GLFW_KEY_UP);
+        addKeyInput(&DOWN_KEY, GLFW_KEY_DOWN);
+        addKeyInput(&LEFT_KEY, GLFW_KEY_LEFT);
+        addKeyInput(&RIGHT_KEY, GLFW_KEY_RIGHT);
 }
 
